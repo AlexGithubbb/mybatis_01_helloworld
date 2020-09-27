@@ -1,5 +1,8 @@
 package com.alexpower.bean;
 
+import org.apache.ibatis.type.Alias;
+
+//@Alias("emp123")
 public class Employee {
 
     int id;

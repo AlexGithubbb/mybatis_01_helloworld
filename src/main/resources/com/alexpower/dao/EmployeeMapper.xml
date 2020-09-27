@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.alexpower.dao.EmployeeMapper">
+<!--public Employee getEmpById(Integer id); -->
+    <!-- resultType can be mapped from the config file : mybatis-config.xml -->
+
+    <!-- valid if connecting to Mysql db -->
+    <select id="getEmpById" resultType="com.alexpower.bean.Employee" databaseId="mysql">
+        select *  from employees where id = #{id}
+    </select>
+
+    <!-- valid if connecting to Oracle db -->
+    <select id="getEmpById" resultType="com.alexpower.bean.Employee" databaseId="oracle">
+        select *  from employees where id = #{id}
+    </select>
+
+
+</mapper>

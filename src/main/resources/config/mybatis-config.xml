@@ -3,24 +3,84 @@
         PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-config.dtd">
 <configuration>
-    <environments default="development">
-        <environment id="development">
+    <!--
+    tag order matters!
+    properties >setting > typeAlias > typeHandlers > objectFactory > objectWrapperFactory > reflectorFactory > plugins
+    > environments > databaseIdProvider > mappers
+
+    -->
+    <!--
+        1. we use properties tag to import other properties config files
+        2. resource: import config files under classpath
+        3. url: import web path or disk resource
+        4. tags like properties and environments will not be needed once integrate with Spring
+    -->
+    <properties resource="config/dbconfig.properties"></properties>
+
+    <!--        <setting name="cacheEnabled" value="false"/>-->
+    <settings>
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+    </settings>
+
+
+    <typeAliases>
+        <!-- <typeAlias type="com.alexpower.bean.Employee" alias="employee"></typeAlias> -->
+
+        <!-- 批量起別名情況下，使用@Alias 註解為某個指定新的別名
+        name: 指定包名（为当前包以及下面所有的后代包的每一个类都起一个默认别名（类名小写）， ）
+        -->
+        <package name="com.alexpower.bean"/>
+    </typeAliases>
+
+<!-- environments 可以配置多种环境
+    transactionManager: 事务管理器：
+    type： 事务管理器的类型：JDBC JdbcTransactionFactory |MANAGED ManagedTransactionFactory
+
+    dataSource: 数据源
+                POOLED PooledDataSourceFactory
+                UNPOOLED UnpooledDataSourceFactory
+                JNDI JndiDataSourceFactory
+-->
+    <environments default="dev_mysql">
+        <!-- MySQL data source config -->
+        <environment id="dev_mysql">
             <transactionManager type="JDBC"/>
             <dataSource type="POOLED">
-                <property name="driver" value="com.mysql.cj.jdbc.Driver"/>
-                <property name="url" value="jdbc:mysql://192.168.56.10:3306/mybatis_emp"/>
-                <property name="username" value="root"/>
-                <property name="password" value="123"/>
+                <property name="driver" value="${jdbc.driver}"/>
+                <property name="url" value="${jdbc.url}"/>
+                <property name="username" value="${jdbc.username}"/>
+                <property name="password" value="${jdbc.password}"/>
+            </dataSource>
+        </environment>
+        <!-- Oracle datasource config -->
+        <environment id="dev_oracle">
+            <transactionManager type="JDBC"></transactionManager>
+            <dataSource type="POOLED">
+                <property name="driver" value="${orcl.driver}"/>
+                <property name="url" value="${orcl.url}"/>
+                <property name="username" value="${orcl.username}"/>
+                <property name="password" value="${orcl.password}"/>
             </dataSource>
         </environment>
     </environments>
 
+    <!--support multiple DBMs, configure in mybatis-config.xml and match in mapped xml file -->
+    <databaseIdProvider type="DB_VENDOR">
+        <property name="MySQL" value="mysql"/>
+        <property name="Oracle" value="oracle"/>
+        <property name="SQL Server" value="sqlserver"/>
+    </databaseIdProvider>
 
-    
 
+<!--    将写好的mapped SQL file (EmployeeMapper.xml) 一定注册到全局配置文件 (mybatis-config.xml) 中,
+        Mybatis 就可以使用 mapper 映射文件了
 
-<!--    将写好的mapped SQL file (EmployeeMapper.xml) 一定注册到全局配置文件 (mybatis-config.xml) 中-->
+        url: 单个网络资源或者磁盘里映射文件注册
+        resource: 单个映射文件注册
+        package: 批量注册， 注明 包名 （分别在resource 和 src 下 建立同名包，这样就避免了映射文件和接口放在同一处）
+        -->
     <mappers>
-        <mapper resource="config/EmployeeMapper.xml"/>
+<!--        <mapper resource="config/mybatis/mapper/EmployeeMapper.xml"/>-->
+        <package name="com.alexpower.dao"/>
     </mappers>
 </configuration>

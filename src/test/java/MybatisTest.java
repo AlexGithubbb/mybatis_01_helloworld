@@ -13,7 +13,7 @@ import java.io.InputStream;
 * 1.
 * 2. sqlSession 代表和数据库的一次对话，用完必须关闭
 * 3. sqlSession 和 connection 一样是线程不安全的， 所以每次使用都应该重新获取新的对象
-* 4. mapper 接口无实现类， 但是 mybatis 会为次接口创建一个代理对象
+* 4. mapper 接口无实现类， 但是 mybatis 会 通过 getMapper() 实现动态代理，为接口动态地创建一个代理实现类
 * 5. 两个重要配置文件：
 *           mybatis 全局配置文件中， 包含 数据库信息， 事务管理器信息等， 系统运行环境信息
 *           sql 映射文件中，保存所有 SQL 语句的映射信息：
