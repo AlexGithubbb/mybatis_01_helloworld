@@ -56,6 +56,26 @@ public class MybatisTest {
     *             SqlSession sqlSession = sessionFactory.openSession(); ==> won't auto commit, need to openSession.commit(), 手动提交
     *             SqlSession sqlSession = sessionFactory.openSession(true); ==>  auto commit
     * */
+    // test null insert Oracle exception
+    @Test
+    public void test06() throws IOException {
+        SqlSessionFactory sessionFactory = this.getSessionFactory();
+        SqlSession sqlSession = sessionFactory.openSession(true);
+
+        try{
+
+            EmployeeMapper mapper = sqlSession.getMapper(EmployeeMapper.class);
+
+            // test add
+            Employee emp = new Employee(null, "Ham", "0", null);
+//             return an Integer as defined in interface method
+            Integer integer = mapper.addEmp(emp);
+            System.out.println("new emp added: " + integer);
+        }finally {
+            sqlSession.close();
+        }
+    }
+
     @Test
     public void test05() throws IOException {
         SqlSessionFactory sessionFactory = this.getSessionFactory();
@@ -83,7 +103,6 @@ public class MybatisTest {
     @Test
     public void test04() throws IOException {
         SqlSessionFactory sessionFactory = this.getSessionFactory();
-        // get sqlSession from sessionFactory, but sqlSession can't commit data automatically, so we need to do it manually
         SqlSession sqlSession = sessionFactory.openSession(true);
 
         try{
@@ -103,7 +122,6 @@ public class MybatisTest {
     @Test
     public void test03() throws IOException {
         SqlSessionFactory sessionFactory = this.getSessionFactory();
-        // get sqlSession from sessionFactory, but sqlSession can't commit data automatically, so we need to do it manually
         SqlSession sqlSession = sessionFactory.openSession(true);
 
         try{
@@ -121,7 +139,6 @@ public class MybatisTest {
     @Test
     public void test02() throws IOException {
         SqlSessionFactory sessionFactory = this.getSessionFactory();
-        // get sqlSession from sessionFactory, but sqlSession can't commit data automatically, so we need to do it manually
         SqlSession sqlSession = sessionFactory.openSession(true);
 
         try{

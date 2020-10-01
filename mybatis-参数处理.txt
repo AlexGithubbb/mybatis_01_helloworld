@@ -56,6 +56,24 @@ difference: #{} 是以预编译的形式将参数设置到sql语句中，Prepare
         select * from tbl_employee order by ${f_name} ${order}
         select * from ${tableName} order by ${f_name} ${order}
 
+#{}: more features:
+    some rules applied on params:
+    [
+     javaType, jdbcType, mode, numericScale,
+     resultType, typeHandler, jdbcTypeName, expression
+    ]
+    (check Configuration Xml -> 'jdbcTypeForNull' default value, at https://mybatis.org/mybatis-3/configuration.html,
+    JdbcType.java in mybatis)
+    jdbcType is needed in some special cases
+    when we insert a null to db, mybatis will map NULL -> OTHER type in db, which is valid in mysql but not Oracle,
+    so if in case of Oracle, we need to add jdbcType as NULL to notify mybatis: let's map NULL -> NULL instead of OTHER
+    so Oracle query in mapper.xml is like this:
+    insert into employees (name, age, email) values(#{name}, #{age}, #{email, jdbcType=NULL})
+    method:
+    mapper.addEmp(new Employee("Alex",27, null)); // name="Alex", age=27, email=null
+
+    method 2 is set it up in global configuration settings
+
 
 =========================================  =======================================================
 

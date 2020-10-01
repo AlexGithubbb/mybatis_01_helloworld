@@ -57,7 +57,7 @@
         /* BEFORE get primary key value (id)*/
         insert into employees (EMPLOYEE_ID, LAST_NAME, EMAIL )
         values(
-        #{id}, #{lastName}, #{email}
+        #{id}, #{lastName}, #{email<!--, jdbcType=NULL-->}
         )
 
     -- AFTER way
