@@ -1,27 +1,30 @@
 package com.alexpower.bean;
 
+import org.apache.ibatis.type.Alias;
+
+//@Alias("emp123")
 public class Employee {
 
-    int id;
+    Integer id;
     String lastName;
-    int gender;
+    String gender;
     String email;
 
     public Employee() {
     }
 
-    public Employee(int id, String lastName, int gender, String email) {
+    public Employee(Integer id, String lastName, String gender, String email) {
         this.id = id;
         this.lastName = lastName;
         this.gender = gender;
         this.email = email;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -33,11 +36,11 @@ public class Employee {
         this.lastName = lastName;
     }
 
-    public int getGender() {
+    public String getGender() {
         return gender;
     }
 
-    public void setGender(int gender) {
+    public void setGender(String gender) {
         this.gender = gender;
     }
 

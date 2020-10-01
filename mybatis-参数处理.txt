@@ -1,0 +1,81 @@
+命名参数： 明确指定封装参数时map的key: @Param("id")
+    多个参数会被封装成一个map,
+        key: 使用@Param 注解指定的值
+        value: 参数值
+        #{id} 取出参数的值
+
+
+POJO：
+如果多个参数正好是我们业务逻辑的数据模型，我们可以直接传入pojo;
+#{属性名} 就是传入的pojo的属性值
+
+Map：
+如果多个参数不是业务模型中的全部数据 （比如只传入 id and lastName），没有对应的pojo 且不经常使用，即可以创建一个map并传入
+#{key} 取出map 中对应的value
+
+TO:
+如果多个参数不是业务模型中的全部数据 （比如只传入 id and lastName），没有对应的pojo 且经常使用，即可以创建一个TO(Transfer Object)
+Page{
+    int index;
+    int size;
+}
+
+================================== 思考 ==================================
+public Employee getEmp(@Param(id) Integer id, String lastName)
+    取值：id ==> ${id}; lastName ==> #{param2}
+
+public Employee getEmp( Integer id, @Param("e") Employee employee)
+    取值：id ==> ${param1}; lastName ==> #{param2.lastName / e.lastName}
+
+if input param is Collection type (List, Set) or Array, Mybatis would handle it differently, will wrap them into a map.
+    key: Collection(collection), if List : Key(list), Array: key(array)
+    public Employee getEmpById(List<Integer> ids);
+    取值：#{ids[0]/param1[0]} [No]
+         #{list[0]}  [Yes]
+
+================================== Let's check out the source code ==================================
+
+
+
+============================================ 参数的取值 ============================================
+#{}: 占位符'?' : can get value from map or POJO (bean)
+${}: get value and put into sql statement directly
+
+common: both can get the param value or POJO filed value
+difference: #{} 是以预编译的形式将参数设置到sql语句中，PreparedStatement (占位符-？）
+            ${} 取出的值直接拼装在sql语句中
+            推荐#{}， 可以有效防止sql注入安全问题， 而且具有预编译的优势
+
+        select *  from employees where id = ${id} and last_name = #{lastName}
+        | --- > select *  from employees where id = 2 and last_name = ?
+
+        大多情况下使用#{}取参数值
+        在某些情况下，比如分库分表，用${}更好：
+        # if want to achieve (select * from 2020_salary where ...), can do sth below by using '$'
+            select * from ${year}_salary where ...
+        select * from tbl_employee order by ${f_name} ${order}
+        select * from ${tableName} order by ${f_name} ${order}
+
+#{}: more features:
+    some rules applied on params:
+    [
+     javaType, jdbcType, mode, numericScale,
+     resultType, typeHandler, jdbcTypeName, expression
+    ]
+    (check Configuration Xml -> 'jdbcTypeForNull' default value, at https://mybatis.org/mybatis-3/configuration.html,
+    JdbcType.java in mybatis)
+    jdbcType is needed in some special cases
+    when we insert a null to db, mybatis will map NULL -> OTHER type in db, which is valid in mysql but not Oracle,
+    so if in case of Oracle, we need to add jdbcType as NULL to notify mybatis: let's map NULL -> NULL instead of OTHER
+    so Oracle query in mapper.xml is like this:
+    insert into employees (name, age, email) values(#{name}, #{age}, #{email, jdbcType=NULL})
+    method:
+    mapper.addEmp(new Employee("Alex",27, null)); // name="Alex", age=27, email=null
+
+    method 2 is set it up in global configuration settings
+
+
+=========================================  =======================================================
+
+
+

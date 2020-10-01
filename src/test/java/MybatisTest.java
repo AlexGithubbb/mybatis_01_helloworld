@@ -1,19 +1,24 @@
+import com.alexpower.bean.Book;
 import com.alexpower.bean.Employee;
+import com.alexpower.dao.BookMapper;
 import com.alexpower.dao.EmployeeMapper;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 
 /*
 * 1.
 * 2. sqlSession 代表和数据库的一次对话，用完必须关闭
 * 3. sqlSession 和 connection 一样是线程不安全的， 所以每次使用都应该重新获取新的对象
-* 4. mapper 接口无实现类， 但是 mybatis 会为次接口创建一个代理对象
+* 4. mapper 接口无实现类， 但是 mybatis 会 通过 getMapper() 实现动态代理，为接口动态地创建一个代理实现类
 * 5. 两个重要配置文件：
 *           mybatis 全局配置文件中， 包含 数据库信息， 事务管理器信息等， 系统运行环境信息
 *           sql 映射文件中，保存所有 SQL 语句的映射信息：
@@ -21,6 +26,8 @@ import java.io.InputStream;
 * */
 
 public class MybatisTest {
+    private static final Logger logger = LogManager.getLogger(MybatisTest.class);
+
     public SqlSessionFactory getSessionFactory() throws IOException {
         String resource = "config/mybatis-config.xml";
         InputStream inputStream = Resources.getResourceAsStream(resource);
@@ -40,6 +47,129 @@ public class MybatisTest {
     *       c. tell Mybatis which sql to use by the mapping id (the unique identification). sqls are all restored in mapping file
     *
     * */
+
+    /*
+    *  test insert, update, delete
+    *  1. mybatis 允许增删改直接定义接收以下类型的返回值：
+    *       Integer, Long, Boolean
+    *  2. 需要手动提交数据：
+    *             SqlSession sqlSession = sessionFactory.openSession(); ==> won't auto commit, need to openSession.commit(), 手动提交
+    *             SqlSession sqlSession = sessionFactory.openSession(true); ==>  auto commit
+    * */
+    // test null insert Oracle exception
+    @Test
+    public void test06() throws IOException {
+        SqlSessionFactory sessionFactory = this.getSessionFactory();
+        SqlSession sqlSession = sessionFactory.openSession(true);
+
+        try{
+
+            EmployeeMapper mapper = sqlSession.getMapper(EmployeeMapper.class);
+
+            // test add
+            Employee emp = new Employee(null, "Ham", "0", null);
+//             return an Integer as defined in interface method
+            Integer integer = mapper.addEmp(emp);
+            System.out.println("new emp added: " + integer);
+        }finally {
+            sqlSession.close();
+        }
+    }
+
+    @Test
+    public void test05() throws IOException {
+        SqlSessionFactory sessionFactory = this.getSessionFactory();
+        // get sqlSession from sessionFactory and set to true to auto commit
+        SqlSession sqlSession = sessionFactory.openSession(true);
+        try {
+            BookMapper mapper = sqlSession.getMapper(BookMapper.class);
+//            Book bookById = mapper.getBookById(1);
+//            System.out.println(bookById);
+            Book book = new Book(null, "Book2", 3);
+            Boolean aBoolean = mapper.addBook(book);
+            System.out.println("new book added? " + aBoolean);
+//
+            System.out.println("new book id is: " + book.getBookId());
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.error("error: ", e);
+        }finally {
+            sqlSession.close();
+        }
+
+    }
+
+
+    @Test
+    public void test04() throws IOException {
+        SqlSessionFactory sessionFactory = this.getSessionFactory();
+        SqlSession sqlSession = sessionFactory.openSession(true);
+
+        try{
+            EmployeeMapper mapper = sqlSession.getMapper(EmployeeMapper.class);
+            HashMap<String, Object> map = new HashMap<String, Object>();
+            map.put("id", 4);
+            map.put("lastName", "Ham");
+            Employee ham = mapper.getEmpByMap(map);
+            System.out.println(ham);
+        }finally {
+            sqlSession.close();
+        }
+
+
+    }
+
+    @Test
+    public void test03() throws IOException {
+        SqlSessionFactory sessionFactory = this.getSessionFactory();
+        SqlSession sqlSession = sessionFactory.openSession(true);
+
+        try{
+            EmployeeMapper mapper = sqlSession.getMapper(EmployeeMapper.class);
+            Employee boy = mapper.getEmpByIdAndLastName(3, "Boy");
+            System.out.println(boy);
+        }finally {
+            sqlSession.close();
+        }
+
+
+    }
+
+
+    @Test
+    public void test02() throws IOException {
+        SqlSessionFactory sessionFactory = this.getSessionFactory();
+        SqlSession sqlSession = sessionFactory.openSession(true);
+
+        try{
+
+            EmployeeMapper mapper = sqlSession.getMapper(EmployeeMapper.class);
+
+            // test add
+            Employee ham = new Employee(null, "Ham", "0", "ham@gmail.com");
+//             return an Integer as defined in interface method
+            Integer integer = mapper.addEmp(ham);
+            System.out.println("new emp added: " + integer);
+            // will get the primary key value
+            System.out.println(ham.getId());
+
+            // test udpate
+//            Employee mari = new Employee(3, "mari", "0", "mari@hotmail.com");
+//            Boolean aBoolean = mapper.updateEmp(mari);
+//            System.out.println("emp No." + mari.getId() + " has been updated? " + aBoolean);
+
+            // test delete
+//            mapper.deleteEmpById(2);
+//            System.out.println("deleted emp No.2");
+
+//            sqlSession.commit();
+        }finally {
+            sqlSession.close();
+        }
+
+
+    }
+
 
     @Test
     public void test() throws IOException {
