@@ -6,6 +6,16 @@
 <!--public Employee getEmpById(Integer id); -->
     <!-- resultType can be mapped from the config file : mybatis-config.xml -->
 
+<!--    public Employee getEmpByMap(HashMap map);-->
+    <select id="getEmpByMap" resultType="com.alexpower.bean.Employee">
+        select *  from employees where id = #{id} and last_name = #{lastName}
+    </select>
+
+    <!--    public Employee getEmpByIdAndLastName(@(param) Integer id, @(param) String lastName);-->
+    <select id="getEmpByIdAndLastName" resultType="com.alexpower.bean.Employee">
+        select *  from employees where id = #{id} and last_name = #{lastName}
+    </select>
+
     <!-- valid if connecting to Mysql db -->
     <select id="getEmpById" resultType="com.alexpower.bean.Employee" databaseId="mysql">
         select *  from employees where id = #{id}
@@ -15,6 +25,60 @@
     <select id="getEmpById" resultType="com.alexpower.bean.Employee" databaseId="oracle">
         select *  from employees where id = #{id}
     </select>
+
+    <!-- useGeneratedKeys="true" && keyProperty="id" would allow us to get auto_increment primary key value (id) -->
+    <insert id="addEmp"
+            useGeneratedKeys="true" keyProperty="id">
+        insert into employees (last_name, gender , email)
+        values(
+        #{lastName}, #{gender}, #{email}
+        )
+    </insert>
+
+    <!-- Oracle insert-->
+    <insert id="addEmp" databaseId="oracle">
+    /* keyProperty 指定查出的主键值自动封装给 javaBean 的哪个属性
+    order: BEFORE: / AFTER
+
+    BEFORE (recommend)
+    先运行selectKey查询id的sql, 查出id的值封装给javaBean对应的id属性
+    再运行插入的SQL， 就可以取出自增键的值 （id）： select EMPLOYEE_SEQ.nextval from dual
+
+    AFTER
+    先运行插入的SQL， 从序列中取出自增键的值 （id）
+    再运行selectKey查询当前id的sql, 查出当前id的值封装给javaBean对应的id属性 ： select EMPLOYEE_SEQ.currval from dual
+    */
+
+    -- BEFORE way
+        <selectKey keyProperty="id" order="BEFORE" resultType="Integer">
+            select EMPLOYEE_SEQ.nextval from dual
+        </selectKey>
+        /* 插入时的主键是从序列中拿到的*/
+        /* BEFORE get primary key value (id)*/
+        insert into employees (EMPLOYEE_ID, LAST_NAME, EMAIL )
+        values(
+        #{id}, #{lastName}, #{email}
+        )
+
+    -- AFTER way
+<!--        insert into employees (EMPLOYEE_ID, LAST_NAME, EMAIL )-->
+<!--                values(employee_seq.nextval, #{lastName}, #{email})-->
+
+<!--        <selectKey keyProperty="id" order="AFTER" resultType="Integer">-->
+<!--            select EMPLOYEE_SEQ.currval from dual-->
+<!--        </selectKey>-->
+    </insert>
+
+
+    <update id="updateEmp">
+        update employees
+        set last_name = #{lastName}, gender = #{gender}, email = #{email}
+        where id = #{id}
+    </update>
+
+    <delete id="deleteEmpById">
+        delete from employees where id = #{id}
+    </delete>
 
 
 </mapper>
