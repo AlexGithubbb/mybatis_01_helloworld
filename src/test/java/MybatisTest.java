@@ -2,6 +2,7 @@ import com.alexpower.bean.Book;
 import com.alexpower.bean.Employee;
 import com.alexpower.dao.BookMapper;
 import com.alexpower.dao.EmployeeMapper;
+import com.alexpower.dao.EmployeeMapperPlus;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -12,7 +13,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
+import java.util.*;
 
 /*
 * 1.
@@ -56,6 +57,79 @@ public class MybatisTest {
     *             SqlSession sqlSession = sessionFactory.openSession(); ==> won't auto commit, need to openSession.commit(), 手动提交
     *             SqlSession sqlSession = sessionFactory.openSession(true); ==>  auto commit
     * */
+
+    @Test
+    public void testResultMap() throws IOException {
+        SqlSessionFactory sessionFactory = this.getSessionFactory();
+        SqlSession sqlSession = sessionFactory.openSession(true);
+        try{
+            EmployeeMapperPlus mapper = sqlSession.getMapper(EmployeeMapperPlus.class);
+            Employee empById = mapper.getEmpById(3);
+            System.out.println(empById);
+        }finally {
+            sqlSession.close();
+        }
+    }
+
+
+    @Test
+    public void getEmpsByNameLikeReturnMap() throws IOException {
+        SqlSessionFactory sessionFactory = this.getSessionFactory();
+        SqlSession sqlSession = sessionFactory.openSession(true);
+        try{
+            EmployeeMapper mapper = sqlSession.getMapper(EmployeeMapper.class);
+            Map<Integer, Employee> emp = mapper.getEmpsByNameLikeReturnMap("%o%");
+            System.out.println(emp.size());
+            Set<Map.Entry<Integer, Employee>> entries = emp.entrySet();
+            Iterator<Map.Entry<Integer, Employee>> iterator = entries.iterator();
+            while (iterator.hasNext()){
+                Map.Entry<Integer, Employee> next = iterator.next();
+                System.out.println(next.getKey() + ": " + next.getValue());
+            }
+        }finally {
+            sqlSession.close();
+        }
+    }
+/*
+*   1: Employee{id=1, lastName='Yao', gender=1, email='byao@gmail.com'}
+    3: Employee{id=3, lastName='Boy', gender=1, email='boooo@hotmail.com'}
+*
+* */
+
+    @Test
+    public void testReturnsMap() throws IOException {
+        SqlSessionFactory sessionFactory = this.getSessionFactory();
+        SqlSession sqlSession = sessionFactory.openSession(true);
+        try{
+            EmployeeMapper mapper = sqlSession.getMapper(EmployeeMapper.class);
+            Map<String, Object> emp = mapper.getEmpByIdReturnMap(3);
+            System.out.println(emp.size());
+            Set<Map.Entry<String, Object>> entries = emp.entrySet();
+            Iterator<Map.Entry<String, Object>> iterator = entries.iterator();
+            while (iterator.hasNext()){
+                Map.Entry<String, Object> next = iterator.next();
+                System.out.println(next.getKey() + ": " + next.getValue());
+            }
+        }finally {
+            sqlSession.close();
+        }
+    }
+
+    @Test
+    public void testSelectLike() throws IOException {
+        SqlSessionFactory sessionFactory = this.getSessionFactory();
+        SqlSession sqlSession = sessionFactory.openSession(true);
+        try{
+            EmployeeMapper mapper = sqlSession.getMapper(EmployeeMapper.class);
+            List<Employee> emps = mapper.getEmpsByNameLike("%o%");
+            for (Employee emp: emps){
+                System.out.println(emp);
+            }
+        }finally {
+            sqlSession.close();
+        }
+    }
+
     // test null insert Oracle exception
     @Test
     public void test06() throws IOException {
