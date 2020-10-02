@@ -13,6 +13,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.List;
 
 /*
 * 1.
@@ -56,6 +57,21 @@ public class MybatisTest {
     *             SqlSession sqlSession = sessionFactory.openSession(); ==> won't auto commit, need to openSession.commit(), 手动提交
     *             SqlSession sqlSession = sessionFactory.openSession(true); ==>  auto commit
     * */
+    @Test
+    public void testSelectLike() throws IOException {
+        SqlSessionFactory sessionFactory = this.getSessionFactory();
+        SqlSession sqlSession = sessionFactory.openSession(true);
+        try{
+            EmployeeMapper mapper = sqlSession.getMapper(EmployeeMapper.class);
+            List<Employee> emps = mapper.getEmpsByNameLike("%o%");
+            for (Employee emp: emps){
+                System.out.println(emp);
+            }
+        }finally {
+            sqlSession.close();
+        }
+    }
+
     // test null insert Oracle exception
     @Test
     public void test06() throws IOException {
