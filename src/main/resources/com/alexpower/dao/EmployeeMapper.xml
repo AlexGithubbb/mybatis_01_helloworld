@@ -4,9 +4,21 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.alexpower.dao.EmployeeMapper">
 
-<!--    public List<Employee> getEmpsByNameLike(String name);
-        resultType: should still be the element type even though it returns a list
--->
+<!--    public Map<Integer, Employee> getEmpsByNameLikeReturnMap(String name);-->
+    <select id="getEmpsByNameLikeReturnMap" resultType="com.alexpower.bean.Employee">
+        select * from employees where last_name like #{nameLike}
+    </select>
+
+
+    <!--    public Map<String, Object> getEmpByIdReturnMap(Integer id);-->
+    <select id="getEmpByIdReturnMap" resultType="map">
+        select * from employees where id = #{id}
+    </select>
+
+
+    <!--    public List<Employee> getEmpsByNameLike(String name);
+            resultType: should still be the element type even though it returns a list
+    -->
     <select id="getEmpsByNameLike" resultType="com.alexpower.bean.Employee">
         select * from employees where last_name like #{nameLike}
     </select>
