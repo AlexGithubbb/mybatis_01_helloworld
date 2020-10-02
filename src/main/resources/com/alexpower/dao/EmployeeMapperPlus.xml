@@ -3,6 +3,31 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.alexpower.dao.EmployeeMapperPlus">
+    <!--public Employee getEmpWithDeptById(Integer id);-->
+    <!-- use association define encapsulate rule for joined single object (department in this case) -->
+    <resultMap id="MyEmpDept" type="com.alexpower.bean.Employee">
+        <id column="emp_id" property="id"></id>
+        <result column="emp_name" property="lastName"></result>
+        <result column="emp_gender" property="gender"></result>
+        <result column="emp_email" property="email"></result>
+        <!-- methodA: 级联属性 -->
+<!--        <result column="d_id" property="department.id"></result>-->
+<!--        <result column="d_name" property="department.name"></result>-->
+        <!-- method B: association -->
+        <!-- property: 封装到哪个javaBean
+             javaType: JavaBean的类型 -->
+        <association property="department" javaType="com.alexpower.bean.Department">
+            <id column="d_id" property="id"></id>
+            <result column="d_name" property="name"></result>
+        </association>
+    </resultMap>
+
+    <select id="getEmpWithDeptById" resultMap="MyEmpDept">
+        select emp.id emp_id, emp.last_name emp_name,emp.gender emp_gender, emp.email emp_email, dept.id d_id, dept.name d_name
+        from employees emp join departments dept on emp.d_id = dept.id
+        where emp.id =  #{id}
+    </select>
+
     <!--     public Employee getEmpById(Integer id);
      resultMap: customized result mapping rule
      -->

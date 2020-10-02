@@ -57,6 +57,20 @@ public class MybatisTest {
     *             SqlSession sqlSession = sessionFactory.openSession(); ==> won't auto commit, need to openSession.commit(), 手动提交
     *             SqlSession sqlSession = sessionFactory.openSession(true); ==>  auto commit
     * */
+//    public Employee getEmpWithDeptById(Integer id);
+    @Test
+    public void testJoinedTableQuery() throws IOException {
+        SqlSessionFactory sessionFactory = this.getSessionFactory();
+        SqlSession sqlSession = sessionFactory.openSession(true);
+        try{
+            EmployeeMapperPlus mapper = sqlSession.getMapper(EmployeeMapperPlus.class);
+            Employee empById = mapper.getEmpWithDeptById(3);
+            System.out.println(empById);
+            System.out.println(empById.getDepartment());
+        }finally {
+            sqlSession.close();
+        }
+    }
 
     @Test
     public void testResultMap() throws IOException {
