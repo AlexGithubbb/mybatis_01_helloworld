@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.alexpower.dao.EmployeeMapperPlus">
+    <!--     public Employee getEmpById(Integer id);
+     resultMap: customized result mapping rule
+     -->
+    <resultMap id="MyEmp" type="com.alexpower.bean.Employee">
+        <!-- id: define the primary key -->
+        <id column="id" property="id"></id>
+        <!-- result: defined normal result mapping rule -->
+        <result column="last_name" property="lastName"></result>
+        <result column="gender" property="gender"></result>
+        <result column="email" property="email"></result>
+    </resultMap>
+    <select id="getEmpById" resultMap="MyEmp">
+        select * from employees where id = #{id}
+    </select>
+
+</mapper>

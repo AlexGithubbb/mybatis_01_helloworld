@@ -2,6 +2,7 @@ import com.alexpower.bean.Book;
 import com.alexpower.bean.Employee;
 import com.alexpower.dao.BookMapper;
 import com.alexpower.dao.EmployeeMapper;
+import com.alexpower.dao.EmployeeMapperPlus;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -56,6 +57,19 @@ public class MybatisTest {
     *             SqlSession sqlSession = sessionFactory.openSession(); ==> won't auto commit, need to openSession.commit(), 手动提交
     *             SqlSession sqlSession = sessionFactory.openSession(true); ==>  auto commit
     * */
+
+    @Test
+    public void testResultMap() throws IOException {
+        SqlSessionFactory sessionFactory = this.getSessionFactory();
+        SqlSession sqlSession = sessionFactory.openSession(true);
+        try{
+            EmployeeMapperPlus mapper = sqlSession.getMapper(EmployeeMapperPlus.class);
+            Employee empById = mapper.getEmpById(3);
+            System.out.println(empById);
+        }finally {
+            sqlSession.close();
+        }
+    }
 
 
     @Test
