@@ -7,4 +7,21 @@
     <select id="getDeptById" resultType="com.alexpower.bean.Department">
         select * from departments where id = #{id}
     </select>
+
+    <!--     public Department getDeptByIdStep(Integer did); -->
+    <resultMap id="MyDeptStep" type="com.alexpower.bean.Department">
+        <id column="id" property="id"></id>
+        <result column="name" property="name"></result>
+        <!-- query employees belong to this department and pass department id to query statement and encapsulate to Employee
+          <collection> tag: indicate that the object it is going to query is a list (List<Employee> emps, defined in bean.Department)
+          property: the property name in javaBean
+          select: decide which query to run
+          column: pass the column value to selected query as the parameter
+          -->
+        <collection property="emps" select="com.alexpower.dao.EmployeeMapperPlus.getEmpByDId" column="id"></collection>
+    </resultMap>
+
+    <select id="getDeptByIdStep" resultMap="MyDeptStep">
+        select * from departments where id = #{id}
+    </select>
 </mapper>

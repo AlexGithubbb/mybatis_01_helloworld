@@ -1,8 +1,11 @@
 package com.alexpower.bean;
 
+import java.util.List;
+
 public class Department {
     Integer id;
     String name;
+    List<Employee> emps;
 
     public Department(Integer id, String name) {
         this.id = id;
@@ -10,6 +13,14 @@ public class Department {
     }
 
     public Department() {
+    }
+
+    public List<Employee> getEmps() {
+        return emps;
+    }
+
+    public void setEmps(List<Employee> emps) {
+        this.emps = emps;
     }
 
     public Integer getId() {

@@ -1,6 +1,8 @@
 import com.alexpower.bean.Book;
+import com.alexpower.bean.Department;
 import com.alexpower.bean.Employee;
 import com.alexpower.dao.BookMapper;
+import com.alexpower.dao.DepartmentMapper;
 import com.alexpower.dao.EmployeeMapper;
 import com.alexpower.dao.EmployeeMapperPlus;
 import org.apache.ibatis.io.Resources;
@@ -57,6 +59,21 @@ public class MybatisTest {
     *             SqlSession sqlSession = sessionFactory.openSession(); ==> won't auto commit, need to openSession.commit(), 手动提交
     *             SqlSession sqlSession = sessionFactory.openSession(true); ==>  auto commit
     * */
+    @Test
+    public void testGetDeptByIdStep() throws IOException {
+        SqlSessionFactory sessionFactory = this.getSessionFactory();
+        SqlSession sqlSession = sessionFactory.openSession(true);
+        try{
+            DepartmentMapper mapper = sqlSession.getMapper(DepartmentMapper.class);
+            Department deptByIdStep = mapper.getDeptByIdStep(1);
+            System.out.println(deptByIdStep);
+            System.out.println(deptByIdStep.getEmps());
+
+        }finally {
+            sqlSession.close();
+        }
+    }
+
     @Test
     public void testGetEmpByIdSteps() throws IOException {
         SqlSessionFactory sessionFactory = this.getSessionFactory();
