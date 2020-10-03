@@ -66,8 +66,9 @@ public class MybatisTest {
         try{
             DepartmentMapper mapper = sqlSession.getMapper(DepartmentMapper.class);
             Department deptByIdStep = mapper.getDeptByIdStep(1);
-            System.out.println(deptByIdStep);
-            System.out.println(deptByIdStep.getEmps());
+            // lazy loading apply (don't need employee info this time, only care about the department name)
+            System.out.println(deptByIdStep.getName());
+//            System.out.println(deptByIdStep.getEmps());
 
         }finally {
             sqlSession.close();
