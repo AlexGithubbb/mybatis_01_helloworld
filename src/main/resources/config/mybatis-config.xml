@@ -24,6 +24,15 @@
         <!-- Globally enables or disables lazy loading. When enabled, all relations will be lazily loaded. -->
         <setting name="lazyLoadingEnabled" value="true"/>
         <setting name="aggressiveLazyLoading" value="false"/>
+
+        <!--
+          LazyLoading is Enabled (load on demand) && aggressive lazy loading is disabled
+            case1: don't need to get info of department by only getting the lastName of Employee instead of all info about Emp (includes Dept) :
+                10:22:06.665 [main] DEBUG com.alexpower.dao.EmployeeMapperPlus.getEmpByIdSteps - ==>  Preparing: select * from employees where id = ?
+                10:22:06.747 [main] DEBUG com.alexpower.dao.EmployeeMapperPlus.getEmpByIdSteps - ==> Parameters: 3(Integer)
+                10:22:06.830 [main] DEBUG com.alexpower.dao.EmployeeMapperPlus.getEmpByIdSteps - <==      Total: 1
+                Boy
+        -->
     </settings>
 
 
