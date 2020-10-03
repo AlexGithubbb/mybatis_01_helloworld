@@ -21,6 +21,9 @@
     <settings>
 <!--        <setting name="mapUnderscoreToCamelCase" value="true"/>-->
         <setting name="jdbcTypeForNull" value="NULL"/>
+        <!-- Globally enables or disables lazy loading. When enabled, all relations will be lazily loaded. -->
+        <setting name="lazyLoadingEnabled" value="true"/>
+        <setting name="aggressiveLazyLoading" value="false"/>
     </settings>
 
 

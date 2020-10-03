@@ -3,6 +3,58 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.alexpower.dao.EmployeeMapperPlus">
+<!--     public Employee getEmpByIdSteps(Integer id); -->
+    <!--
+     1. query employee info
+     2. query department info
+     3. encapsulate result into javaBean
+     -->
+    <resultMap id="EmpStep" type="com.alexpower.bean.Employee">
+        <id column="id" property="id"></id>
+        <result column="last_name" property="lastName"></result>
+        <result column="gender" property="gender"></result>
+        <result column="email" property="email"></result>
+        <!-- association 定义关联对象的封装规则
+            select: 调用指定查询方法并且查出结果
+            column: define 哪一列的值作为parameter传入给select指定的查询方法
+            步骤:
+             使用 select 指定的方法（传入column的值作为参数）查出结果封装给property指定的javaBean中
+         -->
+        <association property="department"
+                     select="com.alexpower.dao.DepartmentMapper.getDeptById"
+                     column="d_id">
+        </association>
+    </resultMap>
+    
+    <select id="getEmpByIdSteps" resultMap="EmpStep">
+        select * from employees where id = #{id}
+    </select>
+
+    <!--public Employee getEmpWithDeptById(Integer id);-->
+    <!-- use association define encapsulate rule for joined single object (department in this case) -->
+    <resultMap id="MyEmpDept" type="com.alexpower.bean.Employee">
+        <id column="emp_id" property="id"></id>
+        <result column="emp_name" property="lastName"></result>
+        <result column="emp_gender" property="gender"></result>
+        <result column="emp_email" property="email"></result>
+        <!-- methodA: 级联属性 -->
+<!--        <result column="d_id" property="department.id"></result>-->
+<!--        <result column="d_name" property="department.name"></result>-->
+        <!-- method B: association -->
+        <!-- property: 封装到哪个javaBean
+             javaType: JavaBean的类型 -->
+        <association property="department" javaType="com.alexpower.bean.Department">
+            <id column="d_id" property="id"></id>
+            <result column="d_name" property="name"></result>
+        </association>
+    </resultMap>
+
+    <select id="getEmpWithDeptById" resultMap="MyEmpDept">
+        select emp.id emp_id, emp.last_name emp_name,emp.gender emp_gender, emp.email emp_email, dept.id d_id, dept.name d_name
+        from employees emp join departments dept on emp.d_id = dept.id
+        where emp.id =  #{id}
+    </select>
+
     <!--     public Employee getEmpById(Integer id);
      resultMap: customized result mapping rule
      -->
