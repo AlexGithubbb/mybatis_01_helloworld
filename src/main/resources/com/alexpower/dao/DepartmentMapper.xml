@@ -18,7 +18,7 @@
           select: decide which query to run
           column: pass the column value to selected query as the parameter
           -->
-        <collection property="emps" select="com.alexpower.dao.EmployeeMapperPlus.getEmpByDId" column="id"></collection>
+        <collection property="emps" select="com.alexpower.dao.EmployeeMapperPlus.getEmpByDId" column="{deptId=id}"></collection>
     </resultMap>
 
     <select id="getDeptByIdStep" resultMap="MyDeptStep">

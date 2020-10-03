@@ -14,7 +14,7 @@
     </resultMap>
 
     <select id="getEmpByDId" resultMap="EmpByDId">
-        select * from employees where d_id = #{d_id}
+        select * from employees where d_id = #{deptId}
     </select>
 
     <!--     public Employee getEmpByIdSteps(Integer id); -->
