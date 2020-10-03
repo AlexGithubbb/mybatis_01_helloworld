@@ -3,6 +3,33 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.alexpower.dao.EmployeeMapperPlus">
+<!--     public Employee getEmpByIdSteps(Integer id); -->
+    <!--
+     1. query employee info
+     2. query department info
+     3. encapsulate result into javaBean
+     -->
+    <resultMap id="EmpStep" type="com.alexpower.bean.Employee">
+        <id column="id" property="id"></id>
+        <result column="last_name" property="lastName"></result>
+        <result column="gender" property="gender"></result>
+        <result column="email" property="email"></result>
+        <!-- association 定义关联对象的封装规则
+            select: 调用指定查询方法并且查出结果
+            column: define 哪一列的值作为parameter传入给select指定的查询方法
+            步骤:
+             使用 select 指定的方法（传入column的值作为参数）查出结果封装给property指定的javaBean中
+         -->
+        <association property="department"
+                     select="com.alexpower.dao.DepartmentMapper.getDeptById"
+                     column="d_id">
+        </association>
+    </resultMap>
+    
+    <select id="getEmpByIdSteps" resultMap="EmpStep">
+        select * from employees where id = #{id}
+    </select>
+
     <!--public Employee getEmpWithDeptById(Integer id);-->
     <!-- use association define encapsulate rule for joined single object (department in this case) -->
     <resultMap id="MyEmpDept" type="com.alexpower.bean.Employee">
