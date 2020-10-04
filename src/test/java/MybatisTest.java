@@ -64,6 +64,19 @@ public class MybatisTest {
     *  1. set up cacheEnabled in mybatis global configuration file
     *              <setting name="cacheEnabled" value="true"/>
     *  2. add <cache> in mapper xml
+    *
+    *
+    * 和缓存相关的设置/属性
+        1) cacheEnabled: false, close cache (only affect second level cache , doesn't affect first level cache (sqlSession cache))
+        2) <select> tag ->  useCached: false, (when cacheEnabled ="true", we can avoid of using second level cache by setting up useCached to false)
+   注意：3）<update><insert><delete> -> 默认 flushCache="true"
+            * 增删改执行完成后就会清除缓存（1, 2 level cache)
+        4) sqlSession.clearCache(); 清空一级缓存，若要使用二级缓存，先关闭会话， 这样data可以save到二级缓存中
+    *   5) localCacheScope: 本地缓存作用域： STATEMENT|SESSION(default) , if STATEMENT 则可以禁用一级缓存（refer to https://mybatis.org/mybatis-3/configuration.html)
+    *
+    *
+    * 缓存调用顺序：
+    * 先调用二级缓存 --> 一级缓存 --> 数据库
     * */
 
     @Test
@@ -78,6 +91,7 @@ public class MybatisTest {
             System.out.println(empById);
             // close sqlSession, data will be saved in global cache (namespace level)
             sqlSession.close();
+            sqlSession.clearCache();
 
             Employee empById2 = mapper2.getEmpById(3); // Cache Hit Ratio [com.alexpower.dao.EmployeeMapper]
             System.out.println(empById2);

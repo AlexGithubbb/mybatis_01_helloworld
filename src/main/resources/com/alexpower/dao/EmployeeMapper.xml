@@ -52,7 +52,7 @@
     </select>
 
     <!-- valid if connecting to Mysql db -->
-    <select id="getEmpById" resultType="com.alexpower.bean.Employee" databaseId="mysql">
+    <select id="getEmpById" resultType="com.alexpower.bean.Employee" databaseId="mysql" useCache="true">
         select *  from employees where id = #{id}
     </select>
 
