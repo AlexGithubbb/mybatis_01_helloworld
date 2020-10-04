@@ -2,8 +2,10 @@ package com.alexpower.bean;
 
 import org.apache.ibatis.type.Alias;
 
+import java.io.Serializable;
+
 //@Alias("emp123")
-public class Employee {
+public class Employee implements Serializable {
 
     Integer id;
     String lastName;

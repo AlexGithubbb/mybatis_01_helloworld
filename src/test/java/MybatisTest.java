@@ -52,12 +52,40 @@ public class MybatisTest {
     *
     level 2 (global cache):
     inside same namespace (mapper.xml) (default is off, need to set up manually)
+    * working mechanism
+    * 1. 一个会话， 查询一条数据，该数据就会被存放在一级缓存中
+    * 2. 如果会话关闭 (sqlSession.close())，一级中的数据会被保存到二级缓存中。新会话就会参照二级缓存的数据
+    * 3. sqlSession === EmployeeMapper ==> Employee
+    *                   DepartmentMapper ==> Department
+    *       不同namespace查出的数据会放在自己对应的缓存中(map)
     为了提高性能，mybatis 定义了缓存接口 Cache, 我们可以通过实现Cache接口来自定义二级缓存
     *
-    *
-    *
-    *
+    *使用：
+    *  1. set up cacheEnabled in mybatis global configuration file
+    *              <setting name="cacheEnabled" value="true"/>
+    *  2. add <cache> in mapper xml
     * */
+
+    @Test
+    public void testSecondLevelCache() throws IOException {
+        SqlSessionFactory sessionFactory = this.getSessionFactory();
+        SqlSession sqlSession = sessionFactory.openSession();
+        SqlSession sqlSession2 = sessionFactory.openSession();
+        try {
+            EmployeeMapper mapper = sqlSession.getMapper(EmployeeMapper.class);
+            EmployeeMapper mapper2 = sqlSession2.getMapper(EmployeeMapper.class);
+            Employee empById = mapper.getEmpById(3);
+            System.out.println(empById);
+            // close sqlSession, data will be saved in global cache (namespace level)
+            sqlSession.close();
+
+            Employee empById2 = mapper2.getEmpById(3); // Cache Hit Ratio [com.alexpower.dao.EmployeeMapper]
+            System.out.println(empById2);
+            System.out.println(empById == empById2); // same as readOnly value in <cache>
+        }finally {
+            sqlSession.close();
+        }
+    }
 
     @Test
     public void testFirstLevelCache() throws IOException {

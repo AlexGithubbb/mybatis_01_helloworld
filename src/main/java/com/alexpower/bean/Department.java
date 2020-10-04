@@ -1,8 +1,9 @@
 package com.alexpower.bean;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class Department {
+public class Department implements Serializable {
     Integer id;
     String name;
     List<Employee> emps;

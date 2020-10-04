@@ -40,6 +40,7 @@
                 10:30:06.670 [main] DEBUG com.alexpower.dao.DepartmentMapper.getDeptById - ==> Parameters: 3(Integer)
                 10:30:06.673 [main] DEBUG com.alexpower.dao.DepartmentMapper.getDeptById - <==      Total: 1
         -->
+        <setting name="cacheEnabled" value="true"/>
     </settings>
 
 
