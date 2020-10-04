@@ -1,6 +1,8 @@
 import com.alexpower.bean.Book;
+import com.alexpower.bean.Department;
 import com.alexpower.bean.Employee;
 import com.alexpower.dao.BookMapper;
+import com.alexpower.dao.DepartmentMapper;
 import com.alexpower.dao.EmployeeMapper;
 import com.alexpower.dao.EmployeeMapperPlus;
 import org.apache.ibatis.io.Resources;
@@ -37,279 +39,119 @@ public class MybatisTest {
     }
 
     /*
-    Steps:
-    * 1,according to global config file (mybatis-config.xml) to generate a sqlSessionFactory instance
-    * 2,sql mapped xml: configured each sql and encapsulate rule
-    * 3, save sql mapping xml into global config file (mybatis-config.xml)
-    * 4, coding:
-    *       a. get sqlSessionFactory from config file
-    *       b. get sqlsessin from sqlSessinFactory and use it to operate CRUD, one sqlsession represents one session to db,
-    *           close when finish
-    *       c. tell Mybatis which sql to use by the mapping id (the unique identification). sqls are all restored in mapping file
     *
+    * There are two levels of Cache machanism in MyBatis
+    cache mechanism:
+    level 1 (local cache):
+    inside sqlSession (default is on， sqlSession 级别的一个map)
+    * 失效情况：
+    * case1: 不同的sqlSession，查询条件相同，发送多次sql
+    * case2: sqlSession 相同，查询条件不同， 发送新sql
+    * case3: sqlSession 相同，两次之间进行了增删改操作
+    * case4: sqlSession 相同，但是 sqlSession.clearCache(),进行缓存清空操作
+    *
+    level 2 (global cache):
+    inside same namespace (mapper.xml) (default is off, need to set up manually)
+    * working mechanism
+    * 1. 一个会话， 查询一条数据，该数据就会被存放在一级缓存中
+    * 2. 如果会话关闭 (sqlSession.close())，一级中的数据会被保存到二级缓存中。新会话就会参照二级缓存的数据
+    * 3. sqlSession === EmployeeMapper ==> Employee
+    *                   DepartmentMapper ==> Department
+    *       不同namespace查出的数据会放在自己对应的缓存中(map)
+    为了提高性能，mybatis 定义了缓存接口 Cache, 我们可以通过实现Cache接口来自定义二级缓存
+    *
+    *使用：
+    *  1. set up cacheEnabled in mybatis global configuration file
+    *              <setting name="cacheEnabled" value="true"/>
+    *  2. add <cache> in mapper xml
+    *
+    *
+    * 和缓存相关的设置/属性
+        1) cacheEnabled: false, close cache (only affect second level cache , doesn't affect first level cache (sqlSession cache))
+        2) <select> tag ->  useCached: false, (when cacheEnabled ="true", we can avoid of using second level cache by setting up useCached to false)
+   注意：3）<update><insert><delete> -> 默认 flushCache="true"
+            * 增删改执行完成后就会清除缓存（1, 2 level cache)
+        4) sqlSession.clearCache(); 清空一级缓存，若要使用二级缓存，先关闭会话， 这样data可以save到二级缓存中
+    *   5) localCacheScope: 本地缓存作用域： STATEMENT|SESSION(default) , if STATEMENT 则可以禁用一级缓存（refer to https://mybatis.org/mybatis-3/configuration.html)
+    *
+    *
+    * 缓存调用顺序：
+    * 先调用二级缓存 --> 一级缓存 --> 数据库
     * */
 
-    /*
-    *  test insert, update, delete
-    *  1. mybatis 允许增删改直接定义接收以下类型的返回值：
-    *       Integer, Long, Boolean
-    *  2. 需要手动提交数据：
-    *             SqlSession sqlSession = sessionFactory.openSession(); ==> won't auto commit, need to openSession.commit(), 手动提交
-    *             SqlSession sqlSession = sessionFactory.openSession(true); ==>  auto commit
-    * */
     @Test
-    public void testGetEmpByIdSteps() throws IOException {
+    public void testSecondLevelCache() throws IOException {
         SqlSessionFactory sessionFactory = this.getSessionFactory();
-        SqlSession sqlSession = sessionFactory.openSession(true);
-        try{
-            EmployeeMapperPlus mapper = sqlSession.getMapper(EmployeeMapperPlus.class);
-            Employee empById = mapper.getEmpByIdSteps(3);
-            System.out.println(empById);
-            System.out.println(empById.getDepartment());
-        }finally {
-            sqlSession.close();
-        }
-    }
-
-//    public Employee getEmpWithDeptById(Integer id);
-    @Test
-    public void testJoinedTableQuery() throws IOException {
-        SqlSessionFactory sessionFactory = this.getSessionFactory();
-        SqlSession sqlSession = sessionFactory.openSession(true);
-        try{
-            EmployeeMapperPlus mapper = sqlSession.getMapper(EmployeeMapperPlus.class);
-            Employee empById = mapper.getEmpWithDeptById(3);
-            System.out.println(empById);
-            System.out.println(empById.getDepartment());
-        }finally {
-            sqlSession.close();
-        }
-    }
-
-    @Test
-    public void testResultMap() throws IOException {
-        SqlSessionFactory sessionFactory = this.getSessionFactory();
-        SqlSession sqlSession = sessionFactory.openSession(true);
-        try{
-            EmployeeMapperPlus mapper = sqlSession.getMapper(EmployeeMapperPlus.class);
+        SqlSession sqlSession = sessionFactory.openSession();
+        SqlSession sqlSession2 = sessionFactory.openSession();
+        try {
+            EmployeeMapper mapper = sqlSession.getMapper(EmployeeMapper.class);
+            EmployeeMapper mapper2 = sqlSession2.getMapper(EmployeeMapper.class);
             Employee empById = mapper.getEmpById(3);
             System.out.println(empById);
-        }finally {
+            // close sqlSession, data will be saved in global cache (namespace level)
             sqlSession.close();
-        }
-    }
+            sqlSession.clearCache();
 
-
-    @Test
-    public void getEmpsByNameLikeReturnMap() throws IOException {
-        SqlSessionFactory sessionFactory = this.getSessionFactory();
-        SqlSession sqlSession = sessionFactory.openSession(true);
-        try{
-            EmployeeMapper mapper = sqlSession.getMapper(EmployeeMapper.class);
-            Map<Integer, Employee> emp = mapper.getEmpsByNameLikeReturnMap("%o%");
-            System.out.println(emp.size());
-            Set<Map.Entry<Integer, Employee>> entries = emp.entrySet();
-            Iterator<Map.Entry<Integer, Employee>> iterator = entries.iterator();
-            while (iterator.hasNext()){
-                Map.Entry<Integer, Employee> next = iterator.next();
-                System.out.println(next.getKey() + ": " + next.getValue());
-            }
-        }finally {
-            sqlSession.close();
-        }
-    }
-/*
-*   1: Employee{id=1, lastName='Yao', gender=1, email='byao@gmail.com'}
-    3: Employee{id=3, lastName='Boy', gender=1, email='boooo@hotmail.com'}
-*
-* */
-
-    @Test
-    public void testReturnsMap() throws IOException {
-        SqlSessionFactory sessionFactory = this.getSessionFactory();
-        SqlSession sqlSession = sessionFactory.openSession(true);
-        try{
-            EmployeeMapper mapper = sqlSession.getMapper(EmployeeMapper.class);
-            Map<String, Object> emp = mapper.getEmpByIdReturnMap(3);
-            System.out.println(emp.size());
-            Set<Map.Entry<String, Object>> entries = emp.entrySet();
-            Iterator<Map.Entry<String, Object>> iterator = entries.iterator();
-            while (iterator.hasNext()){
-                Map.Entry<String, Object> next = iterator.next();
-                System.out.println(next.getKey() + ": " + next.getValue());
-            }
+            Employee empById2 = mapper2.getEmpById(3); // Cache Hit Ratio [com.alexpower.dao.EmployeeMapper]
+            System.out.println(empById2);
+            System.out.println(empById == empById2); // same as readOnly value in <cache>
         }finally {
             sqlSession.close();
         }
     }
 
     @Test
-    public void testSelectLike() throws IOException {
+    public void testFirstLevelCache() throws IOException {
         SqlSessionFactory sessionFactory = this.getSessionFactory();
-        SqlSession sqlSession = sessionFactory.openSession(true);
-        try{
-            EmployeeMapper mapper = sqlSession.getMapper(EmployeeMapper.class);
-            List<Employee> emps = mapper.getEmpsByNameLike("%o%");
-            for (Employee emp: emps){
-                System.out.println(emp);
-            }
-        }finally {
-            sqlSession.close();
-        }
-    }
-
-    // test null insert Oracle exception
-    @Test
-    public void test06() throws IOException {
-        SqlSessionFactory sessionFactory = this.getSessionFactory();
-        SqlSession sqlSession = sessionFactory.openSession(true);
-
-        try{
-
-            EmployeeMapper mapper = sqlSession.getMapper(EmployeeMapper.class);
-
-            // test add
-            Employee emp = new Employee(null, "Ham", "0", null);
-//             return an Integer as defined in interface method
-            Integer integer = mapper.addEmp(emp);
-            System.out.println("new emp added: " + integer);
-        }finally {
-            sqlSession.close();
-        }
-    }
-
-    @Test
-    public void test05() throws IOException {
-        SqlSessionFactory sessionFactory = this.getSessionFactory();
-        // get sqlSession from sessionFactory and set to true to auto commit
-        SqlSession sqlSession = sessionFactory.openSession(true);
+        SqlSession sqlSession = sessionFactory.openSession();
         try {
-            BookMapper mapper = sqlSession.getMapper(BookMapper.class);
-//            Book bookById = mapper.getBookById(1);
-//            System.out.println(bookById);
-            Book book = new Book(null, "Book2", 3);
-            Boolean aBoolean = mapper.addBook(book);
-            System.out.println("new book added? " + aBoolean);
-//
-            System.out.println("new book id is: " + book.getBookId());
-        } catch (Exception e) {
-            e.printStackTrace();
-            logger.error("error: ", e);
-        }finally {
-            sqlSession.close();
-        }
-
-    }
-
-
-    @Test
-    public void test04() throws IOException {
-        SqlSessionFactory sessionFactory = this.getSessionFactory();
-        SqlSession sqlSession = sessionFactory.openSession(true);
-
-        try{
             EmployeeMapper mapper = sqlSession.getMapper(EmployeeMapper.class);
-            HashMap<String, Object> map = new HashMap<String, Object>();
-            map.put("id", 4);
-            map.put("lastName", "Ham");
-            Employee ham = mapper.getEmpByMap(map);
-            System.out.println(ham);
+            Employee empById = mapper.getEmpById(3);
+            System.out.println(empById);
+
+            // second time query
+            Employee empById1 = mapper.getEmpById(3);
+            System.out.println(empById1);
+            // if it's same object of during two times
+            System.out.println(empById == empById1); // true, cause first level cache (sqlSession cache) is on by default
         }finally {
             sqlSession.close();
         }
-
-
     }
 
+    // 失效test
     @Test
-    public void test03() throws IOException {
+    public void testFirstLevelCacheInValid() throws IOException {
         SqlSessionFactory sessionFactory = this.getSessionFactory();
-        SqlSession sqlSession = sessionFactory.openSession(true);
-
-        try{
+        SqlSession sqlSession = sessionFactory.openSession();;
+        try {
             EmployeeMapper mapper = sqlSession.getMapper(EmployeeMapper.class);
-            Employee boy = mapper.getEmpByIdAndLastName(3, "Boy");
-            System.out.println(boy);
+            Employee empById = mapper.getEmpById(3);
+            System.out.println(empById);
+
+            // case 1
+//            SqlSession sqlSession1 = sessionFactory.openSession();
+//            EmployeeMapper mapper1 = sqlSession1.getMapper(EmployeeMapper.class);
+//            Employee empById1 = mapper1.getEmpById(3);
+//            System.out.println(empById1);
+//            System.out.println(empById == empById1); // false, different sqlSession
+
+            // case 2 obvious it's different sql, so cache doesn't work
+            // case 3
+//            mapper.addEmp(new Employee(5,"CodePlayer", "1", "code@qq.com"));
+//            Employee empById1 = mapper.getEmpById(3);
+//            System.out.println(empById1);
+//            System.out.println(empById == empById1); // false, insert/update/delete in between
+
+            // case 4, clear cache
+            sqlSession.clearCache();
+            Employee empById1 = mapper.getEmpById(3);
+            System.out.println(empById1);
+            System.out.println(empById == empById1); // false, cache was cleared in between
         }finally {
             sqlSession.close();
         }
-
-
     }
 
-
-    @Test
-    public void test02() throws IOException {
-        SqlSessionFactory sessionFactory = this.getSessionFactory();
-        SqlSession sqlSession = sessionFactory.openSession(true);
-
-        try{
-
-            EmployeeMapper mapper = sqlSession.getMapper(EmployeeMapper.class);
-
-            // test add
-            Employee ham = new Employee(null, "Ham", "0", "ham@gmail.com");
-//             return an Integer as defined in interface method
-            Integer integer = mapper.addEmp(ham);
-            System.out.println("new emp added: " + integer);
-            // will get the primary key value
-            System.out.println(ham.getId());
-
-            // test udpate
-//            Employee mari = new Employee(3, "mari", "0", "mari@hotmail.com");
-//            Boolean aBoolean = mapper.updateEmp(mari);
-//            System.out.println("emp No." + mari.getId() + " has been updated? " + aBoolean);
-
-            // test delete
-//            mapper.deleteEmpById(2);
-//            System.out.println("deleted emp No.2");
-
-//            sqlSession.commit();
-        }finally {
-            sqlSession.close();
-        }
-
-
-    }
-
-
-    @Test
-    public void test() throws IOException {
-
-        SqlSessionFactory sessionFactory = this.getSessionFactory();
-        SqlSession sqlSession = sessionFactory.openSession();
-
-        /*
-         * @param statement Unique identifier matching the statement to use.
-         * @param parameter A parameter object to pass to the statement.
-         *
-         * */
-
-        Object employee = sqlSession.selectOne("com.alexpower.dao.EmployeeMapper.getEmpById", 1);
-        System.out.println("method 1 \nuse sqlSession.selectOne(“xxx”, object) : \n" +employee);
-
-        sqlSession.close();
-    }
-
-    @Test
-    public void test01() throws IOException {
-        SqlSessionFactory sessionFactory = this.getSessionFactory();
-        // get sqlSession from sessionFactory
-        SqlSession sqlSession = sessionFactory.openSession();
-
-        try{
-
-            // get Proxy (代理对象) of interface EmployeeMapper
-            EmployeeMapper mapper = sqlSession.getMapper(EmployeeMapper.class);
-            System.out.println(mapper + " / " + mapper.getClass()); // com.sun.proxy.$Proxy3 代理对象
-            // call interface method getEmpById()
-            Employee employee = mapper.getEmpById(1);
-
-            System.out.println("method 2 \nuse getMapper to get instance of the Mapper Interface : \n" + employee);
-        }finally {
-            sqlSession.close();
-        }
-
-
-    }
-}
+   }

@@ -19,11 +19,28 @@
 
     <!--        <setting name="cacheEnabled" value="false"/>-->
     <settings>
-<!--        <setting name="mapUnderscoreToCamelCase" value="true"/>-->
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
         <setting name="jdbcTypeForNull" value="NULL"/>
         <!-- Globally enables or disables lazy loading. When enabled, all relations will be lazily loaded. -->
         <setting name="lazyLoadingEnabled" value="true"/>
         <setting name="aggressiveLazyLoading" value="false"/>
+
+        <!--
+          LazyLoading is Enabled (load on demand) && aggressive lazy loading is disabled
+            case1: don't need to get info of department by only getting the lastName of Employee (empById.getLastName()) instead of all info about Emp (includes Dept) :
+                10:22:06.665 [main] DEBUG com.alexpower.dao.EmployeeMapperPlus.getEmpByIdSteps - ==>  Preparing: select * from employees where id = ?
+                10:22:06.747 [main] DEBUG com.alexpower.dao.EmployeeMapperPlus.getEmpByIdSteps - ==> Parameters: 3(Integer)
+                10:22:06.830 [main] DEBUG com.alexpower.dao.EmployeeMapperPlus.getEmpByIdSteps - <==      Total: 1
+                Boy
+            case2: load dept info when we need it. (by printing out whole empById)
+                10:30:06.546 [main] DEBUG com.alexpower.dao.EmployeeMapperPlus.getEmpByIdSteps - ==>  Preparing: select * from employees where id = ?
+                10:30:06.593 [main] DEBUG com.alexpower.dao.EmployeeMapperPlus.getEmpByIdSteps - ==> Parameters: 3(Integer)
+                10:30:06.669 [main] DEBUG com.alexpower.dao.EmployeeMapperPlus.getEmpByIdSteps - <==      Total: 1
+                10:30:06.670 [main] DEBUG com.alexpower.dao.DepartmentMapper.getDeptById - ==>  Preparing: select * from departments where id = ?
+                10:30:06.670 [main] DEBUG com.alexpower.dao.DepartmentMapper.getDeptById - ==> Parameters: 3(Integer)
+                10:30:06.673 [main] DEBUG com.alexpower.dao.DepartmentMapper.getDeptById - <==      Total: 1
+        -->
+        <setting name="cacheEnabled" value="true"/>
     </settings>
 
 

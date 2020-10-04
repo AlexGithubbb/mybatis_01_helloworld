@@ -3,6 +3,21 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.alexpower.dao.EmployeeMapper">
+    <cache eviction="FIFO" flushInterval="60000" readOnly="false" size="1024" ></cache>
+    <!--
+    eviction: 缓存的回收策略：
+        LRU – Least Recently Used: Removes objects that haven't been used for the longst period of time.
+        FIFO – First In First Out: Removes objects in the order that they entered the cache. (Mybatis default)
+        SOFT – Soft Reference: Removes objects based on the garbage collector state and the rules of Soft References.
+        WEAK – Weak Reference: More aggressively removes objects based on the garbage collector state and rules of Weak References.
+
+    flushInterval: 缓存刷新间隔： /ms
+    readOnly:
+        true:  A read-only cache will return the same instance of the cached object to all callers.
+               Thus such objects should not be modified. This offers a significant performance advantage though
+        false: will return a copy (via serialization) of the cached object. This is slower, but safer, and thus the default is false.
+
+    -->
 
 <!--    public Map<Integer, Employee> getEmpsByNameLikeReturnMap(String name);-->
     <select id="getEmpsByNameLikeReturnMap" resultType="com.alexpower.bean.Employee">
@@ -37,7 +52,7 @@
     </select>
 
     <!-- valid if connecting to Mysql db -->
-    <select id="getEmpById" resultType="com.alexpower.bean.Employee" databaseId="mysql">
+    <select id="getEmpById" resultType="com.alexpower.bean.Employee" databaseId="mysql" useCache="true">
         select *  from employees where id = #{id}
     </select>
 

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO">
+    <Appenders>
+        <Console name="ConsoleAppender" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
+        </Console>
+        <File name="FileAppender" fileName="logFile-${date:yyyyMMdd}.log" immediateFlush="false" append="true">
+            <PatternLayout pattern="%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </File>
+    </Appenders>
+    <Loggers>
+        <Root level="debug">
+            <AppenderRef ref="ConsoleAppender" />
+            <AppenderRef ref="FileAppender"/>
+        </Root>
+    </Loggers>
+</Configuration>
+
+<!--
+
+ 1.org.apache.log4j.ConsoleAppender（控制台）
+ 2.org.apache.log4j.FileAppender（文件）
+ 3.org.apache.log4j.DailyRollingFileAppender（每天产生一个日志文件）
+ 4.org.apache.log4j.RollingFileAppender（文件大小到达指定尺寸的时候产生一个新的文件）
+ 5.org.apache.log4j.WriterAppender（将日志信息以流格式发送到任意指定的地方）
+
+ Logger level:
+    Log4J推荐使用：DEBUG， INFO， WARN， ERROR
+
+
+
+-->
